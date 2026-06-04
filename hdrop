@@ -329,7 +329,7 @@ if [[ -n $(hyprctl -j clients | jq -r ".[] | select(.class==\"$CLASS\" and .work
   if [[ $FOCUS == false ]]; then
     # shellcheck disable=SC2140 # erroneous warning
     if [[ $HYPRLAND_VERSION -ge 55 ]]; then
-      hyprctl dispatch 'hl.dsp.window.move({workspace="${ACTIVE_WORKSPACE}", follow=false, window="class:^${CLASS}$"})' || notify "hdrop: Error moving '$COMMANDLINE' to current workspace"
+      hyprctl dispatch "hl.dsp.window.move({workspace=\"${ACTIVE_WORKSPACE}\", follow=false, window=\"class:^${CLASS}$\"})" || notify "hdrop: Error moving '$COMMANDLINE' to current workspace"
     else
       hyprctl dispatch -- movetoworkspacesilent "name:$ACTIVE_WORKSPACE","class:^$CLASS$" || notify "hdrop: Error moving '$COMMANDLINE' to current workspace"
     fi
@@ -340,7 +340,7 @@ if [[ -n $(hyprctl -j clients | jq -r ".[] | select(.class==\"$CLASS\" and .work
 elif [[ -n $(hyprctl -j clients | jq -r ".[] | select(.class==\"$CLASS\" and .workspace.name==\"$ACTIVE_WORKSPACE\")") ]]; then
   if [[ $FOCUS == false ]]; then
     if [[ $HYPRLAND_VERSION -ge 55 ]]; then
-      hyprctl dispatch 'hl.dsp.window.move({workspace="special", follow=false, window="class:^${CLASS}$"})' || notify "hdrop: Error moving '$COMMANDLINE' to current workspace"
+      hyprctl dispatch "hl.dsp.window.move({workspace=\"special\", follow=false, window=\"class:^${CLASS}$\"})" || notify "hdrop: Error moving '$COMMANDLINE' to current workspace"
     else
       hyprctl dispatch -- movetoworkspacesilent special:hdrop,"class:^$CLASS$" || notify "hdrop: Error moving '$COMMANDLINE' to workspace 'special:hdrop'"
     fi
