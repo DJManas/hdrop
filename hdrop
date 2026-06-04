@@ -315,7 +315,6 @@ if $FLOATING; then
   fi
 
   if [[ $HYPRLAND_VERSION -ge 55 ]]; then
-    echo $POSITION_xy
     hyprctl eval "hl.window_rule({ match = { class = '^$CLASS$' }, float = true, move = '$POSITION_xy' })"
   elif [[ $HYPRLAND_VERSION -ge 53 ]]; then
     hyprctl --batch "keyword windowrule float on,match:class ^$CLASS$ ; keyword windowrule move $POSITION_xy,match:class ^$CLASS$"
@@ -329,14 +328,22 @@ fi
 if [[ -n $(hyprctl -j clients | jq -r ".[] | select(.class==\"$CLASS\" and .workspace.name!=\"$ACTIVE_WORKSPACE\")") ]]; then
   if [[ $FOCUS == false ]]; then
     # shellcheck disable=SC2140 # erroneous warning
-    hyprctl dispatch -- movetoworkspacesilent "name:$ACTIVE_WORKSPACE","class:^$CLASS$" || notify "hdrop: Error moving '$COMMANDLINE' to current workspace"
+    if [[ $HYPRLAND_VERSION -ge 55 ]]; then
+      hyprctl dispatch 'hl.dsp.window.move({workspace="${ACTIVE_WORKSPACE}", follow=false, window="class:^${CLASS}$"})' || notify "hdrop: Error moving '$COMMANDLINE' to current workspace"
+    else
+      hyprctl dispatch -- movetoworkspacesilent "name:$ACTIVE_WORKSPACE","class:^$CLASS$" || notify "hdrop: Error moving '$COMMANDLINE' to current workspace"
+    fi
     if [[ $FLOATING ]]; then hyprctl dispatch -- resizewindowpixel exact "$WIDTH_xy% $HEIGHT_xy%", "class:^$CLASS$" || notify "hdrop: Error resizing window for active monitor"; fi
     if $VERBOSE; then notify_low "hdrop: Matched class '$CLASS' on another workspace and moved it to current workspace"; fi
   fi
   hyprctl dispatch -- focuswindow "class:^$CLASS$" || notify "hdrop: Error focusing '$COMMANDLINE' on current workspace"
 elif [[ -n $(hyprctl -j clients | jq -r ".[] | select(.class==\"$CLASS\" and .workspace.name==\"$ACTIVE_WORKSPACE\")") ]]; then
   if [[ $FOCUS == false ]]; then
-    hyprctl dispatch -- movetoworkspacesilent special:hdrop,"class:^$CLASS$" || notify "hdrop: Error moving '$COMMANDLINE' to workspace 'special:hdrop'"
+    if [[ $HYPRLAND_VERSION -ge 55 ]]; then
+      hyprctl dispatch 'hl.dsp.window.move({workspace="special", follow=false, window="class:^${CLASS}$"})' || notify "hdrop: Error moving '$COMMANDLINE' to current workspace"
+    else
+      hyprctl dispatch -- movetoworkspacesilent special:hdrop,"class:^$CLASS$" || notify "hdrop: Error moving '$COMMANDLINE' to workspace 'special:hdrop'"
+    fi
     if [[ $FLOATING ]]; then hyprctl dispatch -- resizewindowpixel exact "$WIDTH_xy% $HEIGHT_xy%", "class:^$CLASS$" || notify "hdrop: Error resizing window for active monitor"; fi
     if $VERBOSE; then notify_low "hdrop: Matched class '$CLASS' on current workspace and moved it to workspace 'special:hdrop'"; fi
   else
